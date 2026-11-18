@@ -26,6 +26,7 @@ input:focus,textarea:focus{outline:2px solid #f4d5e3;border-color:var(--pink)}
 button{border:0;border-radius:14px;padding:14px 16px;background:var(--pink);color:#fff;font-size:14px;font-weight:750;width:100%;margin-top:11px}
 button.secondary{background:#f8e8ef;color:var(--deep)}
 .note{font-size:12px;color:#9b8792;line-height:1.65;margin-top:9px}
+.check-status{display:none;margin-top:10px;padding:12px;border-radius:12px;font-size:13px;line-height:1.55;background:#f8e8ef;color:#75445e}.check-status.show{display:block}.check-status.error{background:#fff0ee;color:#9b3f36}
 .pill{display:inline-block;background:#fbe7f0;color:#a04f78;border-radius:99px;padding:5px 10px;font-size:11px;font-weight:750}
 .row{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #f5edf1;font-size:13px}
 .row:last-child{border:0}.muted{color:#9b8792}.value{font-weight:650;color:var(--deep);text-align:right}
@@ -46,8 +47,9 @@ footer{text-align:center;color:#b09aa6;font-size:11px;margin-top:22px}
     <div class="heading">① 加入 YouTube 影片</div>
     <label for="url">影片連結</label>
     <input id="url" type="url" placeholder="貼上 YouTube 網址">
-    <button id="check">檢查影片連結</button>
-    <p class="note">此版本只檢查網址格式，尚未連接 YouTube 字幕服務。YouTube 官方字幕 API 並不開放下載任意創作者的字幕。</p>
+    <button id="check" type="button">檢查影片連結</button>
+    <div id="checkStatus" class="check-status" role="status" aria-live="polite"></div>
+    <p class="note">目前只檢查網址格式，不會載入影片或讀取字幕。自動讀取字幕及 AI 翻譯功能仍在開發中。</p>
   </section>
 
   <section class="card">
@@ -75,13 +77,21 @@ footer{text-align:center;color:#b09aa6;font-size:11px;margin-top:22px}
 <script>
 const $=id=>document.getElementById(id);
 let parsed=[];
-$('check').onclick=()=>{
+$('check').addEventListener('click',()=>{
+ const raw=$('url').value.trim();
+ const out=$('checkStatus');
+ out.className='check-status show';
+ if(!raw){out.classList.add('error');out.textContent='請先貼上 YouTube 影片網址。';return;}
  try{
-  const u=new URL($('url').value.trim());
-  if(!['youtube.com','www.youtube.com','m.youtube.com','youtu.be','www.youtube-nocookie.com'].includes(u.hostname)) throw 0;
-  $('fileStatus').textContent='網址格式正確。接下來需要可授權取得的字幕或音訊來源。';
- }catch(e){$('fileStatus').textContent='請貼上有效的 YouTube 網址。';}
-};
+  const u=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw);
+  const host=u.hostname.toLowerCase().replace(/^www\./,'');
+  const validHost=host==='youtube.com'||host.endsWith('.youtube.com')||host==='youtu.be'||host==='youtube-nocookie.com';
+  const validPath=host==='youtu.be'?u.pathname.length>1:(u.pathname==='/watch'||u.pathname.startsWith('/shorts/')||u.pathname.startsWith('/live/')||u.pathname.startsWith('/embed/'));
+  if(!validHost||!validPath) throw new Error('invalid');
+  out.classList.remove('error');
+  out.textContent='✓ 網址格式正確！但目前版本尚未連接 YouTube 字幕服務，因此不會載入影片或產生字幕。';
+ }catch(e){out.classList.add('error');out.textContent='網址格式不正確。請貼上完整的 YouTube 影片連結，例如 https://www.youtube.com/watch?v=...';}
+});
 function parseTime(s){
  const p=s.trim().replace(',', '.').split(':').map(Number);
  if(p.length===3)return p[0]*3600+p[1]*60+p[2];
