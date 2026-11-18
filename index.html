@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff6fa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OPPA SUBS">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon.svg">
+<title>OPPA SUBS</title>
+<style>
+:root{--pink:#cf719b;--deep:#75445e;--bg:#fff7fa;--line:#f0dce6;--ink:#352832}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fff2f7 0,#fff9fb 280px);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:var(--ink)}
+main{max-width:560px;margin:auto;padding:calc(24px + env(safe-area-inset-top)) 18px calc(34px + env(safe-area-inset-bottom))}
+.brand{font-size:12px;letter-spacing:2.5px;color:var(--pink);font-weight:850}
+h1{font-size:28px;line-height:1.25;margin:10px 0 7px;color:var(--deep)}
+.sub{font-size:14px;color:#927887;line-height:1.65}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:17px;box-shadow:0 8px 28px #8e57720d}
+.heading{font-weight:750;font-size:15px;margin-bottom:12px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 8px}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+textarea{min-height:115px;resize:vertical;line-height:1.6}
+input:focus,textarea:focus{outline:2px solid #f4d5e3;border-color:var(--pink)}
+button{border:0;border-radius:14px;padding:14px 16px;background:var(--pink);color:#fff;font-size:14px;font-weight:750;width:100%;margin-top:11px}
+button.secondary{background:#f8e8ef;color:var(--deep)}
+.note{font-size:12px;color:#9b8792;line-height:1.65;margin-top:9px}
+.pill{display:inline-block;background:#fbe7f0;color:#a04f78;border-radius:99px;padding:5px 10px;font-size:11px;font-weight:750}
+.row{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #f5edf1;font-size:13px}
+.row:last-child{border:0}.muted{color:#9b8792}.value{font-weight:650;color:var(--deep);text-align:right}
+.status{background:#fff1f6;color:#81556d;border-radius:13px;padding:12px;font-size:12px;line-height:1.65;margin:0}
+.subline{padding:12px 0;border-bottom:1px solid #f5edf1}.subline:last-child{border:0}
+.ko{font-size:12px;color:#9b8792;margin-bottom:5px}.zh{font-size:15px;line-height:1.55;color:var(--deep)}
+.hidden{display:none!important}
+footer{text-align:center;color:#b09aa6;font-size:11px;margin-top:22px}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">♡ OPPA SUBS</div>
+  <h1>聽懂哥哥說的每一句話。</h1>
+  <div class="sub">韓文內容 → 自然繁體中文字幕<br>保留語氣、玩笑和熟悉的哥哥說話方式。</div>
+
+  <section class="card">
+    <div class="heading">① 加入 YouTube 影片</div>
+    <label for="url">影片連結</label>
+    <input id="url" type="url" placeholder="貼上 YouTube 網址">
+    <button id="check">檢查影片連結</button>
+    <p class="note">此版本只檢查網址格式，尚未連接 YouTube 字幕服務。YouTube 官方字幕 API 並不開放下載任意創作者的字幕。</p>
+  </section>
+
+  <section class="card">
+    <div class="heading">② 如果有字幕檔，可以先匯入</div>
+    <label for="subtitle">選擇 SRT / VTT 字幕檔</label>
+    <input id="subtitle" type="file" accept=".srt,.vtt,text/vtt">
+    <p class="note" id="fileStatus">匯入字幕後，可在下方預覽時間軸及原文。這個展示版不會自動翻譯。</p>
+  </section>
+
+  <section class="card">
+    <div class="heading">③ 韓文字幕預覽</div>
+    <div id="preview" class="status">尚未匯入字幕檔。</div>
+    <button class="secondary" id="copy" style="display:none">複製字幕文字</button>
+  </section>
+
+  <section class="card">
+    <div class="heading">你的字幕設定</div>
+    <div class="row"><span class="muted">輸出語言</span><span class="value">繁體中文</span></div>
+    <div class="row"><span class="muted">翻譯風格</span><span class="value">自然口語・保留哥哥語氣</span></div>
+    <div class="row"><span class="muted">畫面顯示</span><span class="value">只顯示中文字幕</span></div>
+  </section>
+
+  <footer>Made with ♡ for your K-pop moments</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let parsed=[];
+$('check').onclick=()=>{
+ try{
+  const u=new URL($('url').value.trim());
+  if(!['youtube.com','www.youtube.com','m.youtube.com','youtu.be','www.youtube-nocookie.com'].includes(u.hostname)) throw 0;
+  $('fileStatus').textContent='網址格式正確。接下來需要可授權取得的字幕或音訊來源。';
+ }catch(e){$('fileStatus').textContent='請貼上有效的 YouTube 網址。';}
+};
+function parseTime(s){
+ const p=s.trim().replace(',', '.').split(':').map(Number);
+ if(p.length===3)return p[0]*3600+p[1]*60+p[2];
+ if(p.length===2)return p[0]*60+p[1];
+ return 0;
+}
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=(s%60).toFixed(1).padStart(4,'0');return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${sec}`}
+$('subtitle').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f)return;
+ const raw=await f.text();let blocks=[];
+ if(f.name.toLowerCase().endsWith('.vtt')){
+  const lines=raw.replace(/\r/g,'').split('\n');let cur=null;
+  for(const line of lines){
+   if(line.includes('-->')){const a=line.split('-->');cur={start:parseTime(a[0]),end:parseTime(a[1].trim().split(/\s+/)[0]),text:[]};blocks.push(cur);}
+   else if(cur&&line.trim()&&!/^WEBVTT|^NOTE|^\d+$/.test(line.trim()))cur.text.push(line.trim());
+  }
+ }else{
+  const chunks=raw.replace(/\r/g,'').split(/\n\s*\n/);
+  for(const chunk of chunks){const lines=chunk.split('\n');const ti=lines.findIndex(x=>x.includes('-->'));if(ti<0)continue;const a=lines[ti].split('-->');blocks.push({start:parseTime(a[0]),end:parseTime(a[1].trim()),text:lines.slice(ti+1).filter(Boolean)});}
+ }
+ parsed=blocks.filter(x=>x.text.length);
+ $('fileStatus').textContent=`已讀取 ${parsed.length} 段字幕。`;
+ $('preview').innerHTML=parsed.length?parsed.slice(0,12).map(x=>`<div class="subline"><div class="ko">${fmt(x.start)} – ${fmt(x.end)}</div><div class="zh">${x.text.join(' ')}</div></div>`).join(''):'無法辨識字幕格式，請確認是 SRT 或 VTT。';
+ $('copy').style.display=parsed.length?'block':'none';
+});
+$('copy').onclick=()=>{const t=parsed.map(x=>`${fmt(x.start)} ${x.text.join(' ')}`).join('\n');navigator.clipboard?.writeText(t).then(()=>{$('fileStatus').textContent='字幕文字已複製。'}).catch(()=>{$('fileStatus').textContent='瀏覽器未允許複製，請改用字幕檔。'});};
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
